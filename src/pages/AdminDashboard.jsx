@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from "../supabase";
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminDashboard = () => {
