@@ -1,62 +1,43 @@
-import { useState } from "react";
-import { supabase } from "./supabase";
+// src/App.jsx
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Gallery from './pages/Gallery';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleUpload = async () => {
-    if (!image) return alert("Please select an image");
-
-    setLoading(true);
-
-    const fileName = `${Date.now()}-${image.name}`;
-
-    const { data, error } = await supabase.storage
-      .from("Images")
-      .upload(fileName, image);
-
-    if (error) {
-      alert(error.message);
-      setLoading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("Images")
-      .getPublicUrl(fileName);
-
-    const imageUrl = urlData.publicUrl;
-
-    const { error: dbError } = await supabase
-      .from("images")
-      .insert([{ image_url: imageUrl }]);
-
-    if (dbError) {
-      alert(dbError.message);
-    } else {
-      alert("Image uploaded successfully!");
-    }
-
-    setLoading(false);
-  };
-
   return (
-    <div style={{ padding: "40px" }}>
-      <h2>Upload Image to Supabase</h2>
-
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImage(e.target.files[0])}
-      />
-
-      <br /><br />
-
-      <button onClick={handleUpload} disabled={loading}>
-        {loading ? "Uploading..." : "Upload Image"}
-      </button>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          
+          <Route
+            path="/gallery"
+            element={
+              <ProtectedRoute>
+                <Gallery />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route path="/" element={<Navigate to="/gallery" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
