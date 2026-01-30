@@ -72,23 +72,17 @@ export const AuthProvider = ({ children }) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName, // Store full_name in user metadata
+          }
+        }
       });
 
       if (error) throw error;
 
-      // Create profile
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName,
-            role: 'user',
-          });
-
-        if (profileError) throw profileError;
-      }
+      // Profile will be created automatically by database trigger
+      // So we don't need to manually insert into profiles table
 
       return { data, error: null };
     } catch (error) {
